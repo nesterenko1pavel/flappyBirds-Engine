@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Tappy Defender Engine</string>
+    <string name="menu_score">SCORE: %d</string>
+    <string name="menu_button_play">PLAY</string>
+</resources>
