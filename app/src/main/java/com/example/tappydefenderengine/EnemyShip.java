@@ -20,6 +20,8 @@ public class EnemyShip {
 
     private Rect hitBox;
 
+    public int overScreenState;
+
     public EnemyShip(Context context, int screenX, int screenY) {
         bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.enemy);
         bitmap = Bitmap.createScaledBitmap(bitmap, 100, 160, true);
@@ -38,6 +40,12 @@ public class EnemyShip {
         y = generator.nextInt(maxY) - bitmap.getHeight();
 
         hitBox = new Rect(x, y, bitmap.getWidth(), bitmap.getHeight());
+
+        overScreenState = 0;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
     }
 
     public Bitmap getBitmap() {
@@ -52,16 +60,21 @@ public class EnemyShip {
         return y;
     }
 
-    public void update(int playerSpeed) {
+    public void update(int playerSpeed, int stop) {
 
         x -= playerSpeed;
         x -= speed;
 
+        if (stop == 0) {
+            if (x < minX - bitmap.getWidth()) {
+                Random generator = new Random();
+                speed = generator.nextInt(10) + 10;
+                x = maxX;
+                y = generator.nextInt(maxY) - bitmap.getHeight();
+            }
+        }
         if (x < minX - bitmap.getWidth()) {
-            Random generator = new Random();
-            speed = generator.nextInt(10) + 10;
-            x = maxX;
-            y = generator.nextInt(maxY) - bitmap.getHeight();
+            overScreenState = 1;
         }
 
         hitBox.left = x;

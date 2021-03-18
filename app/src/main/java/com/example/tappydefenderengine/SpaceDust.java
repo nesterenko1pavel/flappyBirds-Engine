@@ -34,7 +34,9 @@ public class SpaceDust {
             x = maxX;
             Random generator = new Random();
             y = generator.nextInt(maxY);
-            speed = generator.nextInt(15);
+            if (speed != 0) {
+                speed = generator.nextInt(15);
+            }
         }
     }
 
@@ -44,5 +46,9 @@ public class SpaceDust {
 
     public int getY() {
         return y;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = speed;
     }
 }

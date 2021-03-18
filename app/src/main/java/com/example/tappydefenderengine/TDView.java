@@ -2,22 +2,17 @@ package com.example.tappydefenderengine;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.AssetFileDescriptor;
-import android.content.res.AssetManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.media.AudioManager;
-import android.media.SoundPool;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class TDView extends SurfaceView implements Runnable {
 
@@ -48,6 +43,9 @@ public class TDView extends SurfaceView implements Runnable {
     private SharedPreferences prefs;
     private SharedPreferences.Editor editor;
 
+    private int stopEnemy;
+    private int fixedY;
+
     public TDView(Context context, int x, int y) {
         super(context);
         this.context = context;
@@ -61,6 +59,15 @@ public class TDView extends SurfaceView implements Runnable {
         prefs = context.getSharedPreferences("HiScores", context.MODE_PRIVATE);
         editor = prefs.edit();
         fastestTime = prefs.getLong("fastestTime", 1000000);
+
+        fixedY = -1;
+        stopEnemy = 0;
+
+        int numSpecs = 40;
+        for (int i = 0; i < numSpecs; i++) {
+            SpaceDust spec = new SpaceDust(screenX, screenY);
+            dustList.add(spec);
+        }
 
         startGame();
     }
@@ -79,11 +86,13 @@ public class TDView extends SurfaceView implements Runnable {
 
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_UP:
-                player.stopBoosting();
+                if (stopEnemy == 0) player.stopBoosting();
                 break;
             case MotionEvent.ACTION_DOWN:
-                player.setBoosting();
+                if (stopEnemy == 0) player.setBoosting();
                 if (gameEnded) {
+                    stopEnemy = 0;
+                    animEnd(0);
                     startGame();
                 }
                 break;
@@ -114,15 +123,17 @@ public class TDView extends SurfaceView implements Runnable {
         if (hitDetected) {
             player.reduceShieldStrength();
             if (player.getShieldStrength() < 0) {
+                stopEnemy = 1;
+                animEnd(1);
                 gameEnded = true;
             }
         }
 
         player.update();
 
-        enemy1.update(player.getSpeed());
-        enemy2.update(player.getSpeed());
-        enemy3.update(player.getSpeed());
+        enemy1.update(player.getSpeed(), stopEnemy);
+        enemy2.update(player.getSpeed(), stopEnemy);
+        enemy3.update(player.getSpeed(), stopEnemy);
 
         for (SpaceDust sd : dustList) {
             sd.update(player.getSpeed());
@@ -141,7 +152,15 @@ public class TDView extends SurfaceView implements Runnable {
             }
 
             distanceRemaining = 0;
+            stopEnemy = 1;
+            animEnd(1);
             gameEnded = true;
+        }
+
+        if (stopEnemy == 1) {
+            animEnd(1);
+        } else {
+            player.setX(50);
         }
     }
 
@@ -220,17 +239,13 @@ public class TDView extends SurfaceView implements Runnable {
         enemy2 = new EnemyShip(context, screenX, screenY);
         enemy3 = new EnemyShip(context, screenX, screenY);
 
-        int numSpecs = 40;
-        for (int i = 0; i < numSpecs; i++) {
-            SpaceDust spec = new SpaceDust(screenX, screenY);
-            dustList.add(spec);
-        }
-
         distanceRemaining = 10000;
         timeTaken = 0;
 
         timeStarted = System.currentTimeMillis();
 
+        stopEnemy = 0;
+        animEnd(0);
         gameEnded = false;
     }
 
@@ -245,5 +260,48 @@ public class TDView extends SurfaceView implements Runnable {
             strThousandths = "0" + strThousandths;
         }
         return "" + seconds + "." + strThousandths;
+    }
+
+    private void animEnd(int ind) {
+        if (ind == 1) {
+
+            player.setMIN_SPEED(0);
+            stopEnemy = 1;
+
+            if (enemy1.overScreenState == 1) {
+                if (enemy2.overScreenState == 1) {
+                    if (enemy3.overScreenState == 1) {
+
+                        for (SpaceDust sd : dustList) {
+                            sd.setSpeed(0);
+                        }
+
+                    }
+                }
+            }
+
+            if (fixedY == -1) {
+                fixedY = player.getY();
+            }
+
+            player.setY(fixedY);
+            player.setX(player.getX() + 30);
+
+            enemy1.setSpeed(30);
+            enemy2.setSpeed(30);
+            enemy3.setSpeed(30);
+
+        } else if (ind == 0) {
+
+            Random generator = new Random();
+
+            player.setMIN_SPEED(1);
+            fixedY = -1;
+
+            for (SpaceDust sd : dustList) {
+                sd.setSpeed(generator.nextInt(15));
+            }
+
+        }
     }
 }

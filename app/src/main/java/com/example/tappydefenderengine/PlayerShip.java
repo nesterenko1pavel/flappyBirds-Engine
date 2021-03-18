@@ -9,7 +9,7 @@ public class PlayerShip {
 
     private Bitmap bitmap;
     private int x, y;
-    private int speed = 0;
+    private int speed;
 
     private Boolean boosting;
 
@@ -18,10 +18,12 @@ public class PlayerShip {
     private int maxY;
     private int minY;
 
-    private final int MIN_SPEED = 1;
+    private int MIN_SPEED = 1;
     private final int MAX_SPEED = 20;
 
     private Rect hitBox;
+
+    private int screenX;
 
     private int shieldStrength;
 
@@ -29,6 +31,8 @@ public class PlayerShip {
         x = 50;
         y = 50;
         speed = 1;
+
+        this.screenX = screenX;
 
         bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ship);
         bitmap = Bitmap.createScaledBitmap(bitmap, 200, 105, true);
@@ -48,6 +52,14 @@ public class PlayerShip {
 
     public int getY() {
         return y;
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public void setY(int y) {
+        this.y = y;
     }
 
     public int getSpeed() {
@@ -74,9 +86,13 @@ public class PlayerShip {
         return shieldStrength;
     }
 
+    public void setMIN_SPEED(int MIN_SPEED) {
+        this.MIN_SPEED = MIN_SPEED;
+    }
+
     public void update() {
 
-        if (boosting) {
+        if (boosting && MIN_SPEED != 0) {
             speed += 2;
         } else {
             speed -= 5;
